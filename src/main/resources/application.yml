@@ -1,0 +1,21 @@
+configuration:
+  swagger:
+    app: 'File Upload System'
+    description: 'API for File Upload System'
+    developer: 'Hamza Bakaran'
+    email: 'hamza.bakaran@stu.ibu.edu.ba'
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/file-upload
+    username: root
+    password: r0otH@mza
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create-drop # or any other value based on your requirement
+
+security:
+  jwt:
+    secret: '2Rgs9gbpx3eQsiY5YOyQgFnHwThLQf7gp3iMAFDHBH9kHg7nn1Mb5FCf6tXaaR3g'
