@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Configuration;
                 @Server(url = "/", description = "Default Server URL")
         }
 )
-/*
+
 @SecurityScheme(
         name = "JWT Security",
         scheme = "bearer",
@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
         bearerFormat = "JWT"
 )
 
- */
+
+
 public class SwaggerConfiguration {
 }

@@ -2,10 +2,7 @@ package ba.edu.ibu.sdpfileupload.core.model;
 
 
 import ba.edu.ibu.sdpfileupload.core.model.enums.UserType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class User implements UserDetails {
@@ -24,6 +22,21 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private String email;
+    private UserType userType;
+
+    private Date creationDate = new Date();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<File> files;
+
+
+    public Set<File> getFiles() {
+        return files;
+    }
+
+    public void setFiles(Set<File> files) {
+        this.files = files;
+    }
 
     @Override
     public String getUsername() {
@@ -91,9 +104,7 @@ public class User implements UserDetails {
         this.creationDate = creationDate;
     }
 
-    private UserType userType;
 
-    private Date creationDate = new Date();
 
 
     public User() {

@@ -19,3 +19,16 @@ spring:
 security:
   jwt:
     secret: '2Rgs9gbpx3eQsiY5YOyQgFnHwThLQf7gp3iMAFDHBH9kHg7nn1Mb5FCf6tXaaR3g'
+
+minio:
+  endpoint: http://127.0.0.1:9001
+  accessKey: wJnHDB9aJenUdNhP9X6P
+  secretKey: tFGk0p6939acjxL6t1CPQVSMlvBIQDca0KdSTWCM
+  bucketName: file-upload
+
+aws:
+  access-key: $ACCES_KEY_ID
+  secret-key: $SECRET_KEY
+  region:  eu-central-1  # Specify your AWS region here
+  s3:
+    bucket-name: sdp-file-upload-spring # Specify your S3 bucket name here
