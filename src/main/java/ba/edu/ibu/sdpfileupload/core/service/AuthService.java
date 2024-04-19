@@ -7,11 +7,14 @@ import ba.edu.ibu.sdpfileupload.rest.dto.LoginDTO;
 import ba.edu.ibu.sdpfileupload.rest.dto.LoginRequestDTO;
 import ba.edu.ibu.sdpfileupload.rest.dto.UserDTO;
 import ba.edu.ibu.sdpfileupload.rest.dto.UserRequestDTO;
+import com.amazonaws.services.appstream.model.ResourceAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -30,9 +33,19 @@ public class AuthService {
     }
 
     public UserDTO signUp(UserRequestDTO userRequestDTO) {
-        userRequestDTO.setPassword(
-                passwordEncoder.encode(userRequestDTO.getPassword())
-        );
+        // Check if a user with the same email already exists
+        Optional<User> existingUserByEmail = userRepository.findByEmail(userRequestDTO.getEmail());
+        if (existingUserByEmail.isPresent()) {
+            throw new ResourceAlreadyExistsException("User with this email already exists.");
+        }
+
+        // Check if a user with the same username already exists
+        Optional<User> existingUserByUsername = userRepository.findByUsername(userRequestDTO.getUsername());
+        if (existingUserByUsername.isPresent()) {
+            throw new ResourceAlreadyExistsException("User with this username already exists.");
+        }
+
+        userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         User user = userRepository.save(userRequestDTO.toEntity());
 
         return new UserDTO(user);
