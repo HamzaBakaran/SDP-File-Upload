@@ -20,7 +20,9 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     private String username;
+    @Column(length = 500)
     private String password;
+    @Column(length = 500)
     private String email;
     private UserType userType;
 

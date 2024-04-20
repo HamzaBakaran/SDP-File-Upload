@@ -31,28 +31,6 @@ public class S3Controller {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
-        try {
-            s3Service.uploadFile(bucketName, file.getOriginalFilename(), file);
-            return ResponseEntity.status(HttpStatus.OK).body("File uploaded successfully");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
-        }
-    }
-
-    @PostMapping("/upload/{userId}")
-    @PreAuthorize("hasAuthority('GUEST')")
-    public ResponseEntity<String> uploadFile(@PathVariable String userId, @RequestPart("file") MultipartFile file) {
-        try {
-            s3Service.uploadFileForUser(bucketName, userId, file.getOriginalFilename(), file);
-            return ResponseEntity.status(HttpStatus.OK).body("File uploaded successfully");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
-        }
-    }
 
     @PostMapping("/uploadauto")
     @PreAuthorize("hasAuthority('GUEST')")
