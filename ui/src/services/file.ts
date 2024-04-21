@@ -35,11 +35,13 @@ const listFiles = (): Promise<S3File[]> => {
 
 const downloadFile = (key: string): Promise<Blob> => {
     return new Promise((resolve, reject) => {
-        appAxios.get(`/s3/download/${key}`, {
-            responseType: 'blob'
-        }).then(response => {
+        appAxios.get(`/s3/download?key=${encodeURIComponent(key)}`, {
+            responseType: 'blob' // Move responseType inside the config object
+        })
+        .then(response => {
             resolve(response.data);
-        }).catch(error => {
+        })
+        .catch(error => {
             console.error('Error downloading file:', error);
             reject(error);
         });

@@ -7,7 +7,9 @@ import io.jsonwebtoken.Jwt;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -70,12 +72,22 @@ public class S3Controller {
     }
 
 
-    @GetMapping("/download/{key}")
-    public ResponseEntity<S3Object> downloadFile(@PathVariable String key) {
+    @GetMapping("/download")
+    public ResponseEntity<byte[]> downloadFile(@RequestParam String key) {
         S3Object file = s3Service.downloadFile(bucketName, key);
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=" + key)
-                .body(file);
+        byte[] fileBytes;
+        try {
+            fileBytes = s3Service.convertS3ObjectToByteArray(file);
+        } catch (IOException e) {
+            // Handle the exception
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", key);
+
+        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
     }
 
 
