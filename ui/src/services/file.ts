@@ -48,7 +48,7 @@ const downloadFile = (key: string): Promise<Blob> => {
 
 const deleteFile = (key: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-        appAxios.delete(`/s3/delete/${key}`)
+        appAxios.delete('/s3/delete', { params: { key } })
             .then(response => {
                 resolve(response.data);
             })

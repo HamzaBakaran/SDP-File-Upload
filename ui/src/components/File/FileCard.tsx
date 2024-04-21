@@ -1,4 +1,5 @@
 
+import useDeleteFile from '../../hooks/useDeleteFile';
 import { S3File } from '../../utils/types';
 
 type FileCardProps = {
@@ -7,10 +8,20 @@ type FileCardProps = {
 
 const FileCard = ({ file }: FileCardProps) => {
   const { key, size, lastModified } = file;
+  const deleteMutation = useDeleteFile();
 
   // Function to convert file size from bytes to kilobytes
   const convertBytesToKB = (bytes: number) => {
     return (bytes / 1024).toFixed(2) + ' KB';
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(key);
+      console.log('File deleted successfully');
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
   };
 
   return (
@@ -20,6 +31,7 @@ const FileCard = ({ file }: FileCardProps) => {
         <p className="card-text">Size: {convertBytesToKB(size)}</p>
         <p className="card-text">Last Modified: {new Date(lastModified).toLocaleString()}</p>
         <a href={`http://yourapi.com/download/${key}`} className="btn btn-primary" download>Download</a>
+        <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
       </div>
     </div>
   );

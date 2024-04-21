@@ -36,6 +36,3 @@ aws:
   region:  eu-central-1  # Specify your AWS region here
   s3:
     bucket-name: sdp-file-upload-spring # Specify your S3 bucket name here
-
-
-

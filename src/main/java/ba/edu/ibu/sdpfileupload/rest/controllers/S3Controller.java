@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,8 +80,9 @@ public class S3Controller {
 
 
 
-    @DeleteMapping("/delete/{key}")
-    public ResponseEntity<String> deleteFile(@PathVariable String key) {
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteFile(@RequestParam String key) {
+
         s3Service.deleteFile(bucketName, key);
         return ResponseEntity.ok().body("File deleted successfully");
     }
