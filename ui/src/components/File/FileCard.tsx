@@ -1,9 +1,8 @@
-import React from 'react';
-import { File } from '../../utils/types';
 
-// FileCard Component
+import { S3File } from '../../utils/types';
+
 type FileCardProps = {
-    file: File;
+    file: S3File;
 }
 
 const FileCard = ({ file }: FileCardProps) => {
@@ -15,10 +14,13 @@ const FileCard = ({ file }: FileCardProps) => {
   };
 
   return (
-    <div className="file">
-      <h3>{key}</h3>
-      <p>Size: {convertBytesToKB(size)}</p>
-      <p>Last Modified: {new Date(lastModified).toLocaleString()}</p>
+    <div className="card">
+      <div className="card-body">
+        <h5 className="card-title">{key}</h5>
+        <p className="card-text">Size: {convertBytesToKB(size)}</p>
+        <p className="card-text">Last Modified: {new Date(lastModified).toLocaleString()}</p>
+        <a href={`http://yourapi.com/download/${key}`} className="btn btn-primary" download>Download</a>
+      </div>
     </div>
   );
 };

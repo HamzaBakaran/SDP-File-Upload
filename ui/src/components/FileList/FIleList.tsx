@@ -1,9 +1,10 @@
-import React from 'react';
-import { File } from '../../utils/types';
-import { useFiles } from "../../hooks"
+
+import { S3File } from '../../utils/types';
+import useFiles from '../../hooks/useFiles';
+import FileCard from '../File/FileCard';
 
 const FileList = () => {
-  const { data: files, isLoading, isError } = useFiles(); // Invoke the useFiles hook
+  const { data: files = [], isLoading, isError } = useFiles(); // Use default value [] if files is undefined
 
   if (isLoading) {
     return <div>Loading...</div>; // Render a loading indicator while data is fetching
@@ -16,12 +17,9 @@ const FileList = () => {
   return (
     <div className="files-list">
       <h2>Files List</h2>
-      {files.map((file: File, index: number) => ( // Explicitly type the file parameter
-        <div key={index} className="file">
-          <h3>{file.key}</h3>
-          <p>Size: {file.size}</p>
-          <p>Last Modified: {new Date(file.lastModified).toLocaleString()}</p>
-        </div>
+      {files.map((file: S3File, index: number) => (
+        // Use the FileCard component for each file
+        <FileCard key={index} file={file} />
       ))}
     </div>
   );

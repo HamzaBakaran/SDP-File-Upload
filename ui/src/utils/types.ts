@@ -8,7 +8,7 @@
     userName: string;
   };
  
-  export type File = {
+  export type S3File = {
     bucketName: string;
     key: string;
     size: number;

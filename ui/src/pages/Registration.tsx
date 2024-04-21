@@ -23,7 +23,7 @@ export type RegisterFormData = {
        firstName: yup.string().required("First name is required."),
        lastName: yup.string().required(),
        email: yup.string().email().required(),
-       username: yup.string().min(6).max(20).required(),
+       username: yup.string().min(6).max(50).required(),
        password: yup.string().min(8).required(),
        userType: yup.string().required()
    })

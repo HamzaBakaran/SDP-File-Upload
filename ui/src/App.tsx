@@ -2,7 +2,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Route, Routes } from "react-router-dom"
 import Navbar from './components/Navbar/Navbar';
-import { Home, Login,NotFound,Registration } from './pages'
+import { Home, Login,NotFound,Registration,Files } from './pages'
 import parseJwt from './utils/parseJwt';
 import ProtectedRoute from './utils/ProtectedRoute';
 
@@ -20,6 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Registration />} />
         <Route element={<ProtectedRoute />}>
+          <Route path="/files" element={<Files />} />
   
 
         </Route>

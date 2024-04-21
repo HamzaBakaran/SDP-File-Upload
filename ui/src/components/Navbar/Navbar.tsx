@@ -16,7 +16,7 @@ const Navbar = () => {
         <ul className="nav mx-auto">
           <li className="nav-item">
             <Link className="nav-link text-white" to="/home">
-              Products
+              Home
             </Link>
           </li>
 
@@ -36,18 +36,8 @@ const Navbar = () => {
           ) : (
             <>
               <li className="nav-item">
-                <Link className="nav-link text-white" to="/dashboard">
-                  Dashboard
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link text-white" to="/user">
-                  Users
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link text-white" to="/order">
-                  Orders
+                <Link className="nav-link text-white" to="/files">
+                  Files
                 </Link>
               </li>
               <div className="d-flex align-items-center">
