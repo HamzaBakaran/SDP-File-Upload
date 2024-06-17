@@ -82,6 +82,9 @@ const FileCard = ({ file, className }: FileCardProps) => {
     return 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=No+Preview'; // Default color
   };
 
+  // Extract the file name after the last '/'
+  const fileName = key.split('/').pop();
+
   return (
     <Card className={`mb-3 shadow-sm ${className}`}>
       <Card.Body>
@@ -95,7 +98,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
             />
           </Col>
           <Col md={9} className="d-flex flex-column justify-content-center">
-            <Card.Title className="text-truncate" title={key}>{key}</Card.Title>
+            <Card.Title className="text-truncate" title={fileName}>{fileName}</Card.Title>
             <Card.Text>
               <Row>
                 <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
