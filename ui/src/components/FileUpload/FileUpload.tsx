@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Spinner } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 import useFileUpload from '../../hooks/useUploadFile';
+import 'react-toastify/dist/ReactToastify.css';
 
 const UploadComponent = () => {
   const uploadMutation = useFileUpload();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = () => {
@@ -19,12 +22,17 @@ const UploadComponent = () => {
 
   const handleFileUpload = async () => {
     if (selectedFile) {
+      setIsUploading(true);
       try {
         await uploadMutation.mutateAsync(selectedFile);
-        console.log('File uploaded successfully');
+        toast.success('File uploaded successfully');
         setSelectedFile(null); // Reset selected file after successful upload
-      } catch (error) {
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'Error uploading file';
+        toast.error(`Error uploading file: ${errorMessage}`);
         console.error('Error uploading file:', error);
+      } finally {
+        setIsUploading(false);
       }
     }
     setShowModal(false); // Close the modal after upload
@@ -67,7 +75,9 @@ const UploadComponent = () => {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>Close</Button>
-          <Button variant="primary" onClick={handleFileUpload} disabled={!selectedFile}>Upload</Button>
+          <Button variant="primary" onClick={handleFileUpload} disabled={!selectedFile || isUploading}>
+            {isUploading ? <Spinner animation="border" size="sm" /> : 'Upload'}
+          </Button>
         </Modal.Footer>
       </Modal>
     </>
