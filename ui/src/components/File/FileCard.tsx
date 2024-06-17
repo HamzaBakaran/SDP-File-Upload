@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-//import useDownloadFile from '../../hooks/useDownloadFile';
 import useDeleteFile from '../../hooks/useDeleteFile';
 import { S3File } from '../../utils/types';
-import { Spinner } from 'react-bootstrap';
+import { Spinner, Card, Button, Row, Col } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 type FileCardProps = {
   file: S3File;
+  className?: string; // Add className prop
 }
 
-const FileCard = ({ file }: FileCardProps) => {
+const FileCard = ({ file, className }: FileCardProps) => {
   const { key, size, lastModified } = file;
   const deleteMutation = useDeleteFile();
-  //const downloadQuery = useDownloadFile(key); // Use the useDownloadFile hook
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -62,20 +62,64 @@ const FileCard = ({ file }: FileCardProps) => {
     }
   };
 
+  const getPreviewImageUrl = (fileKey: string) => {
+    const fileExtension = fileKey.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension || '')) {
+      return `http://localhost:8080/api/s3/download?key=${encodeURIComponent(fileKey)}`;
+    }
+    if (fileExtension === 'pdf') {
+      return 'https://via.placeholder.com/150/FF0000/FFFFFF?text=PDF+File'; // Red for PDF
+    }
+    if (['doc', 'docx'].includes(fileExtension || '')) {
+      return 'https://via.placeholder.com/150/0000FF/FFFFFF?text=Word+File'; // Blue for Word
+    }
+    if (['xls', 'xlsx'].includes(fileExtension || '')) {
+      return 'https://via.placeholder.com/150/00FF00/FFFFFF?text=Excel+File'; // Green for Excel
+    }
+    if (fileExtension === 'txt') {
+      return 'https://via.placeholder.com/150/AAAAAA/FFFFFF?text=Text+File'; // Gray for Text
+    }
+    return 'https://via.placeholder.com/150/CCCCCC/FFFFFF?text=No+Preview'; // Default color
+  };
+
   return (
-    <div className="card">
-      <div className="card-body">
-        <h5 className="card-title">{key}</h5>
-        <p className="card-text">Size: {convertBytesToKB(size)}</p>
-        <p className="card-text">Last Modified: {new Date(lastModified).toLocaleString()}</p>
-        <button className="btn btn-primary" onClick={handleDownload} disabled={isDownloading}>
-          {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
-        </button>
-        <button className="btn btn-danger" onClick={handleDelete} disabled={isDeleting}>
-          {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
-        </button>
-      </div>
-    </div>
+    <Card className={`mb-3 shadow-sm ${className}`}>
+      <Card.Body>
+        <Row>
+          <Col md={3} className="d-flex align-items-center justify-content-center justify-content-md-start">
+            <img 
+              src={getPreviewImageUrl(key)} 
+              alt="File preview" 
+              className="img-fluid rounded my-3" // Added my-3 for vertical margin
+              style={{ maxHeight: '150px' }}
+            />
+          </Col>
+          <Col md={9} className="d-flex flex-column justify-content-center">
+            <Card.Title className="text-truncate" title={key}>{key}</Card.Title>
+            <Card.Text>
+              <Row>
+                <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
+              </Row>
+              <Row>
+                <Col className="text-muted"><strong>Last Modified:</strong> {new Date(lastModified).toLocaleString()}</Col>
+              </Row>
+            </Card.Text>
+            <Row className="mt-3">
+              <Col>
+                <Button variant="primary" onClick={handleDownload} disabled={isDownloading} className="w-100">
+                  {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
+                </Button>
+              </Col>
+              <Col>
+                <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
+                  {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
+                </Button>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </Card.Body>
+    </Card>
   );
 };
 
