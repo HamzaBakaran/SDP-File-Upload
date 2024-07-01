@@ -4,14 +4,13 @@ import { FileService } from '../services';
 const useFileUpload = () => {
   const queryClient = useQueryClient();
 
-  const uploadMutation = useMutation(FileService.uploadFile, {
+  const uploadMutation = useMutation(({ file, folderPath }: { file: File, folderPath?: string }) => FileService.uploadFile(file, folderPath), {
     onSuccess: () => {
-      // Invalidate and refetch the files query to update the file list after upload
       queryClient.invalidateQueries('s3Files');
-    },
+    }
   });
 
-    return uploadMutation;
-}
+  return uploadMutation;
+};
 
 export default useFileUpload;

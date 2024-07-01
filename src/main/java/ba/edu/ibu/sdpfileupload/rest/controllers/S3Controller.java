@@ -1,6 +1,8 @@
 package ba.edu.ibu.sdpfileupload.rest.controllers;
 
 import ba.edu.ibu.sdpfileupload.core.service.S3Service;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import io.jsonwebtoken.Jwt;
@@ -35,17 +37,15 @@ public class S3Controller {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-
-    @PostMapping("/uploadauto")
+    @PostMapping("/upload")
     @PreAuthorize("hasAuthority('GUEST')")
-    public ResponseEntity<String> uploadFileAuto(@RequestPart("file") MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestPart("file") MultipartFile file, @RequestParam(required = false) String folderPath) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();
 
-
-            // Proceed with uploading the file using the extracted user ID
-            s3Service.uploadFileForUser(bucketName, userName, file.getOriginalFilename(), file);
+            // Proceed with uploading the file using the extracted user ID and folder path
+            s3Service.uploadFileForUser(bucketName, userName, folderPath, file);
 
             return ResponseEntity.status(HttpStatus.OK).body("File uploaded successfully");
         } catch (IOException e) {
@@ -56,13 +56,19 @@ public class S3Controller {
 
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('GUEST')")
-    public ResponseEntity<List<S3ObjectSummary>> listFiles() {
+    public ResponseEntity<List<S3ObjectSummary>> listFiles(@RequestParam(required = false) String folderPath) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();
 
-            // Retrieve the list of files uploaded by the authenticated user
-            List<S3ObjectSummary> fileList = s3Service.listFilesForUser(bucketName, userName);
+            List<S3ObjectSummary> fileList;
+            if (folderPath != null && !folderPath.isEmpty()) {
+                // Retrieve the list of files in the specified folder
+                fileList = s3Service.listFilesForUserInFolder(bucketName, userName, folderPath);
+            } else {
+                // Retrieve the list of all files uploaded by the authenticated user
+                fileList = s3Service.listFilesForUser(bucketName, userName);
+            }
 
             return ResponseEntity.ok().body(fileList);
         } catch (Exception e) {
@@ -70,7 +76,6 @@ public class S3Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
         }
     }
-
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadFile(@RequestParam String key) {
@@ -90,12 +95,45 @@ public class S3Controller {
         return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
     }
 
-
-
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteFile(@RequestParam String key) {
-
-        s3Service.deleteFile(bucketName, key);
-        return ResponseEntity.ok().body("File deleted successfully");
+        if (key.endsWith("/")) {
+            s3Service.deleteFolder(bucketName, key);
+            return ResponseEntity.ok().body("Folder deleted successfully");
+        } else {
+            s3Service.deleteFile(bucketName, key);
+            return ResponseEntity.ok().body("File deleted successfully");
+        }
     }
+
+    @PostMapping("/create-folder")
+    @PreAuthorize("hasAuthority('GUEST')")
+    public ResponseEntity<String> createFolder(@RequestParam String folderPath) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userName = authentication.getName();
+
+            s3Service.createFolder(bucketName, userName, folderPath);
+
+            return ResponseEntity.status(HttpStatus.OK).body("Folder created successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create folder");
+        }
+    }
+
+    @PostMapping("/move-file")
+    @PreAuthorize("hasAuthority('GUEST')")
+    public ResponseEntity<String> moveFile(@RequestParam String sourceKey, @RequestParam String destinationKey) {
+        try {
+            s3Service.moveFile(bucketName, sourceKey, destinationKey);
+            return ResponseEntity.status(HttpStatus.OK).body("File moved successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to move file");
+        }
+    }
+
+
+
 }
