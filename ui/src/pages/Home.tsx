@@ -1,9 +1,14 @@
-import FolderList from "../components/FolderList/FolderList"
 const Home = () => {
     return (
      
 
-      <FolderList />
+    <div className="container">
+        <div className="row">
+            <div className="col">
+            <h1>Home</h1>
+            </div>
+        </div>
+    </div>
 
     )
   }

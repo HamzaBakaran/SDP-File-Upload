@@ -54,6 +54,7 @@ public class S3Controller {
         }
     }
 
+
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('GUEST')")
     public ResponseEntity<List<S3ObjectSummary>> listFiles(@RequestParam(required = false) String folderPath) {

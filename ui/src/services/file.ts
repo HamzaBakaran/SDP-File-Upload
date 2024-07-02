@@ -5,7 +5,7 @@ const uploadFile = async (file: File, folderPath: string = ''): Promise<void> =>
   try {
     const formData: FormData = new FormData();
     formData.append('file', file);
-    formData.append('folderPath', folderPath);
+    formData.append('folderPath', folderPath.replace(/\/$/, '')); // Ensure no trailing slash
 
     const response = await appAxios.post('s3/upload', formData, {
       headers: {
@@ -19,6 +19,7 @@ const uploadFile = async (file: File, folderPath: string = ''): Promise<void> =>
     throw error;
   }
 };
+
 
 const listFiles = (folderPath?: string): Promise<S3File[]> => {
   return new Promise((resolve, reject) => {

@@ -28,7 +28,18 @@ public class S3Service {
     public void uploadFileForUser(String bucketName, String userName, String folderPath, MultipartFile file) throws IOException {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
+
+        // Ensure folderPath is not null and remove trailing slashes
+        if (folderPath == null) {
+            folderPath = "";
+        } else {
+            folderPath = folderPath.replaceAll("/$", "");
+        }
+
+        // Construct S3 key ensuring no double slashes
         String s3Key = userName + (folderPath.isEmpty() ? "" : "/" + folderPath) + "/" + file.getOriginalFilename();
+        s3Key = s3Key.replaceAll("//", "/"); // Ensure no double slashes in the key
+
         amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata));
     }
 

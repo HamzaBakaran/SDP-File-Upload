@@ -36,8 +36,13 @@ const Navbar = () => {
           ) : (
             <>
               <li className="nav-item">
+                <Link className="nav-link text-white" to="/folders">
+                  Folders
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link text-white" to="/files">
-                  Files
+                  All Files
                 </Link>
               </li>
               <div className="d-flex align-items-center">

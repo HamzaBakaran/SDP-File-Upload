@@ -18,7 +18,9 @@ const FolderComponent: React.FC<FolderProps> = ({ name, onClick, folderPath }) =
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteMutation.mutateAsync(folderPath.endsWith('/') ? folderPath : `${folderPath}/`);
+      // Sanitize folderPath to ensure there are no double slashes or trailing slashes
+      const sanitizedFolderPath = folderPath.replace(/\/{2,}/g, '/').replace(/\/+$/, '') + '/';
+      await deleteMutation.mutateAsync(sanitizedFolderPath);
       toast.success('Folder deleted successfully');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Error deleting folder';
