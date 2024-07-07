@@ -11,27 +11,19 @@ public class UserDTO {
     private UserType userType;
     private String email;
 
+    // Default constructor
+    public UserDTO() {}
+
     public UserDTO(User user) {
         this.id = user.getId();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
-        this.username =user.getUsername();
-        // Set userType to GUEST only if it's null
+        this.username = user.getUsername();
         this.userType = (user.getUserType() != null) ? user.getUserType() : UserType.GUEST;
         this.email = user.getEmail();
     }
 
-
-
-    public String getUserName() {
-        return username;
-    }
-
-    public void setUserName(String username) {
-        this.username = username;
-    }
-
-
+    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -56,12 +48,12 @@ public class UserDTO {
         this.lastName = lastName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUsername() {
+        return username;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public UserType getUserType() {
@@ -70,5 +62,13 @@ public class UserDTO {
 
     public void setUserType(UserType userType) {
         this.userType = userType;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
