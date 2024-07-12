@@ -95,7 +95,9 @@ const FileList = () => {
   const filteredFiles = getFilteredFiles();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Render a loading indicator while data is fetching
+    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+    <Spinner animation="border" variant="primary" />
+   </Container>
   }
 
   if (isError) {

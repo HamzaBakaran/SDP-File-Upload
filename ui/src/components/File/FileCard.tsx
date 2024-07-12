@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import useDeleteFile from '../../hooks/useDeleteFile';
+import useMoveFile from '../../hooks/useMoveFile';
 import { S3File } from '../../utils/types';
-import { Spinner, Card, Button, Row, Col } from 'react-bootstrap';
+import { Spinner, Card, Button, Row, Col, Modal, Form } from 'react-bootstrap';
+import fileService from '../../services/file';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -14,8 +16,16 @@ type FileCardProps = {
 const FileCard = ({ file, className }: FileCardProps) => {
   const { key, size, lastModified } = file;
   const deleteMutation = useDeleteFile();
+  const moveMutation = useMoveFile();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [availableFolders, setAvailableFolders] = useState<string[]>([]);
+  const [targetFolder, setTargetFolder] = useState('');
+  const [isMoving, setIsMoving] = useState(false);
+
+  // Extract the folder path from the key
+  const folderPath = key.substring(0, key.lastIndexOf('/') + 1);
 
   // Function to convert file size from bytes to kilobytes
   const convertBytesToKB = (bytes: number) => {
@@ -62,6 +72,34 @@ const FileCard = ({ file, className }: FileCardProps) => {
     }
   };
 
+  const handleMoveClick = async () => {
+    setShowMoveModal(true);
+    try {
+      const folders = await fileService.listFiles(); // Fetch all files and folders
+      const folderPaths = folders.filter(f => f.key.endsWith('/')).map(f => f.key);
+      setAvailableFolders(folderPaths);
+    } catch (error) {
+      toast.error('Error fetching folders');
+    }
+  };
+
+  const handleMoveFile = async () => {
+    if (targetFolder) {
+      setIsMoving(true);
+      try {
+        await moveMutation.mutateAsync({ sourceKey: key, destinationKey: `${targetFolder}${key.split('/').pop()}` });
+        toast.success(`File moved to ${targetFolder} successfully`);
+        setShowMoveModal(false);
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'Error moving file';
+        toast.error(`Error moving file: ${errorMessage}`);
+        console.error('Error moving file:', error);
+      } finally {
+        setIsMoving(false);
+      }
+    }
+  };
+
   const getPreviewImageUrl = (fileKey: string) => {
     const fileExtension = fileKey.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension || '')) {
@@ -86,43 +124,80 @@ const FileCard = ({ file, className }: FileCardProps) => {
   const fileName = key.split('/').pop();
 
   return (
-    <Card className={`mb-3 shadow-sm ${className}`}>
-      <Card.Body>
-        <Row>
-          <Col md={3} className="d-flex align-items-center justify-content-center justify-content-md-start">
-            <img 
-              src={getPreviewImageUrl(key)} 
-              alt="File preview" 
-              className="img-fluid rounded my-3" // Added my-3 for vertical margin
-              style={{ maxHeight: '150px' }}
-            />
-          </Col>
-          <Col md={9} className="d-flex flex-column justify-content-center">
-            <Card.Title className="text-truncate" title={fileName}>{fileName}</Card.Title>
-            <Card.Text>
-              <Row>
-                <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
+    <>
+      <Card className={`mb-3 shadow-sm ${className}`}>
+        <Card.Body>
+          <Row>
+            <Col md={3} className="d-flex align-items-center justify-content-center justify-content-md-start">
+              <img 
+                src={getPreviewImageUrl(key)} 
+                alt="File preview" 
+                className="img-fluid rounded my-3" // Added my-3 for vertical margin
+                style={{ maxHeight: '150px' }}
+              />
+            </Col>
+            <Col md={9} className="d-flex flex-column justify-content-center">
+              <Card.Title className="text-truncate" title={fileName}>{fileName}</Card.Title>
+              <Card.Text>
+                <Row>
+                  <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
+                </Row>
+                <Row>
+                  <Col className="text-muted"><strong>Last Modified:</strong> {new Date(lastModified).toLocaleString()}</Col>
+                </Row>
+                <Row>
+                  <Col className="text-muted"><strong>Current Folder:</strong> {folderPath}</Col>
+                </Row>
+              </Card.Text>
+              <Row className="mt-3">
+                <Col>
+                  <Button variant="primary" onClick={handleDownload} disabled={isDownloading} className="w-100">
+                    {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
+                  </Button>
+                </Col>
+                <Col>
+                  <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
+                    {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
+                  </Button>
+                </Col>
+                <Col>
+                  <Button variant="secondary" onClick={handleMoveClick} className="w-100">
+                    Move File
+                  </Button>
+                </Col>
               </Row>
-              <Row>
-                <Col className="text-muted"><strong>Last Modified:</strong> {new Date(lastModified).toLocaleString()}</Col>
-              </Row>
-            </Card.Text>
-            <Row className="mt-3">
-              <Col>
-                <Button variant="primary" onClick={handleDownload} disabled={isDownloading} className="w-100">
-                  {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
-                </Button>
-              </Col>
-              <Col>
-                <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
-                  {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
-                </Button>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </Card.Body>
-    </Card>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      <Modal show={showMoveModal} onHide={() => setShowMoveModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Move File</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Select Target Folder</Form.Label>
+            <Form.Control
+              as="select"
+              value={targetFolder}
+              onChange={(e) => setTargetFolder(e.target.value)}
+            >
+              <option value="">Select a folder</option>
+              {availableFolders.map((folder, index) => (
+                <option key={index} value={folder}>{folder}</option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowMoveModal(false)}>Close</Button>
+          <Button variant="primary" onClick={handleMoveFile} disabled={isMoving || !targetFolder}>
+            {isMoving ? <Spinner animation="border" size="sm" /> : 'Move File'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 

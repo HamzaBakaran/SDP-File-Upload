@@ -31,6 +31,7 @@ appAxios.interceptors.response.use(
       toast.error('Session expired. Please log in again.');
       localStorage.removeItem('userToken'); // Clear the token from local storage
       window.location.href = '/login'; // Redirect to the login page
+      toast.error('Session expired. Please log in again.');
     }
     return Promise.reject(error);
   }
