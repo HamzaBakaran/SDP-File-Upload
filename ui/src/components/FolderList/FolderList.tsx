@@ -7,11 +7,12 @@ import { Button, Row, Col, Container, Modal, FormControl, InputGroup, Spinner } 
 import { toast } from 'react-toastify';
 import useFileUpload from '../../hooks/useUploadFile';
 import fileService from '../../services/file';
+import { ArrowLeft } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const FolderList = () => {
   const [currentPath, setCurrentPath] = useState<string>('');
-  const { data: files = [], isLoading, isError } = useFiles(currentPath);
+  const { data: files = [], isLoading, isError, refetch } = useFiles(currentPath);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [folderSearchQuery, setFolderSearchQuery] = useState('');
@@ -30,6 +31,7 @@ const FolderList = () => {
       toast.success('Folder created successfully');
       setNewFolderName('');
       setShowCreateFolderModal(false);
+      refetch(); // Refetch the files after creating the folder
     } catch (error) {
       toast.error('Error creating folder');
       console.error('Error creating folder:', error);
@@ -54,6 +56,7 @@ const FolderList = () => {
         await uploadMutation.mutateAsync({ file: selectedFile, folderPath });
         toast.success('File uploaded successfully');
         setSelectedFile(null); // Reset selected file after successful upload
+        refetch(); // Refetch the files after uploading
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || 'Error uploading file';
         toast.error(`Error uploading file: ${errorMessage}`);
@@ -71,15 +74,16 @@ const FolderList = () => {
   };
 
   const getFolders = () => {
-    const folderSet = new Set<string>();
+    const folderMap = new Map<string, string>();
     files.forEach(file => {
       const relativePath = file.key.replace(/^[^/]+/, ''); // Remove the email part from the path
       const folderPath = relativePath.split('/').slice(0, -1).join('/');
+      const fullPath = `${currentPath ? currentPath + '/' : ''}${folderPath}`;
       if (folderPath.startsWith(currentPath) && folderPath !== currentPath) {
-        folderSet.add(folderPath);
+        folderMap.set(folderPath, fullPath);
       }
     });
-    return Array.from(folderSet);
+    return Array.from(folderMap.entries());
   };
 
   const getFilesInCurrentPath = () => {
@@ -93,7 +97,7 @@ const FolderList = () => {
   const filesInCurrentPath = getFilesInCurrentPath();
 
   const getFilteredFolders = () => {
-    return folders.filter(folder => folder.toLowerCase().includes(folderSearchQuery.toLowerCase()));
+    return folders.filter(([folder]) => folder.toLowerCase().includes(folderSearchQuery.toLowerCase()));
   };
 
   const getFilteredFiles = () => {
@@ -104,7 +108,11 @@ const FolderList = () => {
   const filteredFiles = getFilteredFiles();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
   }
 
   if (isError) {
@@ -114,21 +122,21 @@ const FolderList = () => {
   return (
     <Container className="my-3">
       <Row className="align-items-center mb-3">
-        <Col>
+        <Col xs={12} md={2}>
           {currentPath && (
-            <Button variant="link" onClick={() => setCurrentPath(currentPath.split('/').slice(0, -1).join('/'))}>
-              🔙 Back
+            <Button variant="outline-secondary" className="d-flex align-items-center" onClick={() => setCurrentPath(currentPath.split('/').slice(0, -1).join('/'))}>
+              <ArrowLeft className="me-2" /> Back
             </Button>
           )}
         </Col>
-        <Col xs={15} md={6}>
+        <Col xs={12} md={10}>
           <InputGroup className="w-100">
             <FormControl
               type="text"
-              placeholder={currentPath ? "Search files..." : "Search folders..."}
+              placeholder={currentPath ? 'Search files...' : 'Search folders...'}
               value={currentPath ? fileSearchQuery : folderSearchQuery}
-              onChange={(e) => currentPath ? setFileSearchQuery(e.target.value) : setFolderSearchQuery(e.target.value)}
-              className="me-2"
+              onChange={e => (currentPath ? setFileSearchQuery(e.target.value) : setFolderSearchQuery(e.target.value))}
+              className="me-2 flex-grow-1"
             />
             <Button variant="secondary" onClick={() => setShowCreateFolderModal(true)}>Create Folder</Button>
             {currentPath && (
@@ -138,12 +146,12 @@ const FolderList = () => {
         </Col>
       </Row>
       <div className="folders-list">
-        {!currentPath && filteredFolders.map((folder, index) => (
+        {!currentPath && filteredFolders.map(([folder, fullPath], index) => (
           <div key={index}>
             <FolderComponent
               name={folder.split('/').pop() || ''}
               onClick={() => handleFolderClick(folder)}
-              folderPath={folder} // Pass the folderPath prop
+              folderPath={fullPath} // Pass the full path for deletion
             />
           </div>
         ))}
@@ -163,14 +171,12 @@ const FolderList = () => {
             type="text"
             placeholder="Folder name"
             value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
+            onChange={e => setNewFolderName(e.target.value)}
           />
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowCreateFolderModal(false)}>Close</Button>
-          <Button variant="primary" onClick={handleCreateFolder} disabled={!newFolderName}>
-            Create
-          </Button>
+          <Button variant="primary" onClick={handleCreateFolder} disabled={!newFolderName}>Create</Button>
         </Modal.Footer>
       </Modal>
 
@@ -185,9 +191,7 @@ const FolderList = () => {
             style={{ display: 'none' }}
             onChange={handleFileSelect}
           />
-          <Button className="btn btn-secondary mb-3" onClick={() => fileInputRef.current?.click()}>
-            Select File
-          </Button>
+          <Button className="btn btn-secondary mb-3" onClick={() => fileInputRef.current?.click()}>Select File</Button>
           {selectedFile && (
             <p>
               Selected File: {selectedFile.name}

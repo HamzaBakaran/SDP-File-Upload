@@ -11,7 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 type FileCardProps = {
   file: S3File;
   className?: string; // Add className prop
-}
+};
 
 const FileCard = ({ file, className }: FileCardProps) => {
   const { key, size, lastModified } = file;
@@ -24,8 +24,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
   const [targetFolder, setTargetFolder] = useState('');
   const [isMoving, setIsMoving] = useState(false);
 
-  // Extract the folder path from the key
-  const folderPath = key.substring(0, key.lastIndexOf('/') + 1);
+
 
   // Function to convert file size from bytes to kilobytes
   const convertBytesToKB = (bytes: number) => {
@@ -102,6 +101,9 @@ const FileCard = ({ file, className }: FileCardProps) => {
 
   const getPreviewImageUrl = (fileKey: string) => {
     const fileExtension = fileKey.split('.').pop()?.toLowerCase();
+    if (fileKey.endsWith('/')) {
+      return ''; // No URL for folder, we'll use the emoji
+    }
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension || '')) {
       return `http://localhost:8080/api/s3/download?key=${encodeURIComponent(fileKey)}`;
     }
@@ -121,7 +123,19 @@ const FileCard = ({ file, className }: FileCardProps) => {
   };
 
   // Extract the file name after the last '/'
-  const fileName = key.split('/').pop();
+  const fileName = key.endsWith('/') ? key.split('/').slice(-2, -1)[0] : key.split('/').pop();
+
+  // Function to copy the download link to the clipboard
+  const handleShare = async () => {
+    const downloadLink = `http://localhost:8080/api/s3/download?key=${encodeURIComponent(key)}`;
+    try {
+      await navigator.clipboard.writeText(downloadLink);
+      toast.success('Download link copied to clipboard');
+    } catch (error) {
+      toast.error('Failed to copy download link');
+      console.error('Error copying download link:', error);
+    }
+  };
 
   return (
     <>
@@ -129,43 +143,61 @@ const FileCard = ({ file, className }: FileCardProps) => {
         <Card.Body>
           <Row>
             <Col md={3} className="d-flex align-items-center justify-content-center justify-content-md-start">
-              <img 
-                src={getPreviewImageUrl(key)} 
-                alt="File preview" 
-                className="img-fluid rounded my-3" // Added my-3 for vertical margin
-                style={{ maxHeight: '150px' }}
-              />
+              {key.endsWith('/') ? (
+                <div style={{ fontSize: '4em' }}>📁</div>
+              ) : (
+                <img 
+                  src={getPreviewImageUrl(key)} 
+                  alt="File preview" 
+                  className="img-fluid rounded my-3" // Added my-3 for vertical margin
+                  style={{ maxHeight: '150px' }}
+                />
+              )}
             </Col>
             <Col md={9} className="d-flex flex-column justify-content-center">
               <Card.Title className="text-truncate" title={fileName}>{fileName}</Card.Title>
-              <Card.Text>
-                <Row>
-                  <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
+              {key.endsWith('/') ? (
+                <Row className="mt-3 gx-2 gy-2">
+                  <Col xs={12} sm={6}>
+                    <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
+                      {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete Folder'}
+                    </Button>
+                  </Col>
                 </Row>
-                <Row>
-                  <Col className="text-muted"><strong>Last Modified:</strong> {new Date(lastModified).toLocaleString()}</Col>
-                </Row>
-                <Row>
-                  <Col className="text-muted"><strong>Current Folder:</strong> {folderPath}</Col>
-                </Row>
-              </Card.Text>
-              <Row className="mt-3">
-                <Col>
-                  <Button variant="primary" onClick={handleDownload} disabled={isDownloading} className="w-100">
-                    {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
-                  </Button>
-                </Col>
-                <Col>
-                  <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
-                    {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
-                  </Button>
-                </Col>
-                <Col>
-                  <Button variant="secondary" onClick={handleMoveClick} className="w-100">
-                    Move File
-                  </Button>
-                </Col>
-              </Row>
+              ) : (
+                <>
+                  <Card.Text>
+                    <Row>
+                      <Col className="text-muted"><strong>Size:</strong> {convertBytesToKB(size)}</Col>
+                    </Row>
+                    <Row>
+                      <Col className="text-muted"><strong>Last Modified:</strong> {new Date(lastModified).toLocaleString()}</Col>
+                    </Row>
+                  </Card.Text>
+                  <Row className="mt-3 gx-2 gy-2">
+                    <Col xs={12} sm={6}>
+                      <Button variant="primary" onClick={handleDownload} disabled={isDownloading} className="w-100">
+                        {isDownloading ? <Spinner animation="border" size="sm" /> : 'Download'}
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6}>
+                      <Button variant="danger" onClick={handleDelete} disabled={isDeleting} className="w-100">
+                        {isDeleting ? <Spinner animation="border" size="sm" /> : 'Delete'}
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6}>
+                      <Button variant="secondary" onClick={handleMoveClick} className="w-100">
+                        Move 
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6}>
+                      <Button variant="info" onClick={handleShare} className="w-100">
+                        Share
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
+              )}
             </Col>
           </Row>
         </Card.Body>
@@ -173,7 +205,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
 
       <Modal show={showMoveModal} onHide={() => setShowMoveModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Move File</Modal.Title>
+          <Modal.Title>Move file</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group>
