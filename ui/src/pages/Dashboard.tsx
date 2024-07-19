@@ -12,10 +12,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (files.length > 0) {
-      const sortedFiles = files.filter(file => !file.key.endsWith('/')).sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+      const filteredFiles = files.filter(file => !file.key.endsWith('/'));
+      const sortedFiles = filteredFiles.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
       setRecentFiles(sortedFiles.slice(0, 3));
-      setTotalFiles(files.length);
-      const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+      setTotalFiles(filteredFiles.length);
+      const totalSize = filteredFiles.reduce((sum, file) => sum + file.size, 0);
       setTotalSize(totalSize);
     }
   }, [files]);

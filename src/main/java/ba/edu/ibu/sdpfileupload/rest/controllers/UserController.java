@@ -20,6 +20,7 @@ public class UserController {
         this.userService=userService;
     }
     @RequestMapping(method = RequestMethod.GET,path ="/all" )
+    @PreAuthorize("hasAnyAuthority( 'ADMIN','WORKER')")
     public ResponseEntity<List<UserDTO>> getUsers(){
         return ResponseEntity.ok(userService.findAllUsers());
     }

@@ -38,7 +38,7 @@ const Login = () => {
   useEffect(() => {
     if (userToken) {
       toast.success('Login successful');
-      navigate('/files');
+      navigate('/dashboard');
     }
   }, [navigate, userToken]);
 

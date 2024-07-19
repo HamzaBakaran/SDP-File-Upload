@@ -11,9 +11,9 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
   datasource:
-    url: jdbc:mysql://localhost:3306/file-upload
-    username: root
-    password: r0otH@mza
+    url: ${DB_URL_PROD}
+    username: ${DB_USERNAME_PROD}
+    password: ${DB_PASSWORD_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -31,8 +31,8 @@ minio:
   bucketName: file-upload
 
 aws:
-  access-key: $access-key
-  secret-key: $secret-key
+  access-key: ${ACCESS_KEY}
+  secret-key: ${SECRET_KEY}
   region:  eu-central-1  # Specify your AWS region here
   s3:
     bucket-name: sdp-file-upload-spring # Specify your S3 bucket name here
