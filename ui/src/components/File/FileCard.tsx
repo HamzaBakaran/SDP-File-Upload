@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import  { useState } from 'react';
 import { toast } from 'react-toastify';
 import useDeleteFile from '../../hooks/useDeleteFile';
 import useMoveFile from '../../hooks/useMoveFile';
 import { S3File } from '../../utils/types';
 import { Spinner, Card, Button, Row, Col, Modal, Form } from 'react-bootstrap';
 import fileService from '../../services/file';
+import { BASE_URL } from '../../constants';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -23,8 +24,6 @@ const FileCard = ({ file, className }: FileCardProps) => {
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
   const [targetFolder, setTargetFolder] = useState('');
   const [isMoving, setIsMoving] = useState(false);
-
-
 
   // Function to convert file size from bytes to kilobytes
   const convertBytesToKB = (bytes: number) => {
@@ -48,7 +47,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/s3/download?key=${encodeURIComponent(key)}`);
+      const response = await fetch(`${BASE_URL}/s3/download?key=${encodeURIComponent(key)}`);
       if (!response.ok) {
         throw new Error('Failed to download file');
       }
@@ -105,7 +104,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
       return ''; // No URL for folder, we'll use the emoji
     }
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension || '')) {
-      return `http://localhost:8080/api/s3/download?key=${encodeURIComponent(fileKey)}`;
+      return `${BASE_URL}/s3/download?key=${encodeURIComponent(fileKey)}`;
     }
     if (fileExtension === 'pdf') {
       return 'https://via.placeholder.com/150/FF0000/FFFFFF?text=PDF+File'; // Red for PDF
@@ -127,7 +126,7 @@ const FileCard = ({ file, className }: FileCardProps) => {
 
   // Function to copy the download link to the clipboard
   const handleShare = async () => {
-    const downloadLink = `http://localhost:8080/api/s3/download?key=${encodeURIComponent(key)}`;
+    const downloadLink = `${BASE_URL}/s3/download?key=${encodeURIComponent(key)}`;
     try {
       await navigator.clipboard.writeText(downloadLink);
       toast.success('Download link copied to clipboard');
