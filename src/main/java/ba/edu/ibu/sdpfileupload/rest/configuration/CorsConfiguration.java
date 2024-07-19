@@ -14,7 +14,7 @@ public class CorsConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 registry
                         .addMapping("/**")
-                        .allowedOrigins("https://669a7105e72c6449a9457813--sdp-file-upload.netlify.app/")
+                        .allowedOrigins("https://main--sdp-file-upload.netlify.app/")
                         .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
